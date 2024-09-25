@@ -1,26 +1,26 @@
 clc;close all;clear 
 
 %Cargar archivos
-g11 = load('g21.txt'); %Registro Desplazamiento incial
-g12 = load('g22.txt'); %Registro Velocidad inicial
-g13 = load('g23.txt'); %Registro Amortiguamiento adicional
-g14 = load('g24.txt'); %Registro Resonancia 
+g21 = load('g21.txt'); %Registro Desplazamiento incial
+g22 = load('g22.txt'); %Registro Velocidad inicial
+g23 = load('g23.txt'); %Registro Amortiguamiento adicional
+g24 = load('g24.txt'); %Registro Resonancia 
 
 %Constantes sensores
 c_respuesta = 1.028; 
 c_forzante = 0.986;
 
 %Vectores de tiempo de cada registro
-t1 = g11(:,1);
-t2 = g12(:,1);
-t3 = g13(:,1);
-t4 = g14(:,1);
+t1 = g21(:,1);
+t2 = g22(:,1);
+t3 = g23(:,1);
+t4 = g24(:,1);
 
 %Respuesta aceleración sistema [g]
-Respuesta_A_1 = g11(:,2)./c_respuesta;
-Respuesta_A_2 = g12(:,2)./c_respuesta;
-Respuesta_A_3 = g13(:,2)./c_respuesta;
-Respuesta_A_4 = g14(:,2)./c_respuesta;
+Respuesta_A_1 = g21(:,2)./c_respuesta;
+Respuesta_A_2 = g22(:,2)./c_respuesta;
+Respuesta_A_3 = g23(:,2)./c_respuesta;
+Respuesta_A_4 = g24(:,2)./c_respuesta;
 
 %Gráfico respuestas aceleración
 figure()
