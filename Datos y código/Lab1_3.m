@@ -1,14 +1,14 @@
 clc;close all;clear 
 
 %Cargar archivos
-g21 = load('g21.txt'); %Registro Desplazamiento incial
-g22 = load('g22.txt'); %Registro Velocidad inicial
-g23 = load('g23.txt'); %Registro Amortiguamiento adicional
-g24 = load('g24.txt'); %Registro Resonancia 
+g21 = load('g21.txt'); %Desplazamiento incial conocido
+g22 = load('g22.txt'); %Golpe
+g23 = load('g23.txt'); %Estructura con amortiguamiento
+g24 = load('g24.txt'); %Resonancia 
 
 %Constantes sensores
-c_respuesta = 1.028; 
-c_forzante = 0.986;
+c_estructura = 1.029; 
+c_forzante = 1.028;
 
 %Vectores de tiempo de cada registro
 t1 = g21(:,1);
@@ -17,41 +17,47 @@ t3 = g23(:,1);
 t4 = g24(:,1);
 
 %Respuesta aceleración sistema [g]
-Respuesta_A_1 = g21(:,2)./c_respuesta;
-Respuesta_A_2 = g22(:,2)./c_respuesta;
-Respuesta_A_3 = g23(:,2)./c_respuesta;
-Respuesta_A_4 = g24(:,2)./c_respuesta;
+Respuesta_1 = g21(:,2)./c_estructura;
+Respuesta_2 = g22(:,2)./c_estructura;
+Respuesta_3 = g23(:,2)./c_estructura;
+Respuesta_4 = g24(:,2)./c_estructura;
+
+%Datos de la forzante [g]
+Respuesta_for_1 = g21(:,3)./c_forzante;
+Respuesta_for_2 = g22(:,3)./c_forzante;
+Respuesta_for_3 = g23(:,3)./c_forzante;
+Respuesta_for_4 = g24(:,3)./c_forzante;
 
 %Gráfico respuestas aceleración
 figure()
 nexttile
-plot(t1,Respuesta_A_1)
-xlabel('tiempo [s]')
+plot(t1,Respuesta_1)
+xlabel('Tiempo [s]')
 ylabel('Aceleración [g]')
-title('Respuesta desp incial')
+title('Respuesta con desplazamiento incial')
 grid
 nexttile
-plot(t2,Respuesta_A_2)
-xlabel('tiempo [s]')
+plot(t2,Respuesta_2)
+xlabel('Tiempo [s]')
 ylabel('Aceleración [g]')
-title('Respuesta impacto')
+title('Respuesta con golpe')
 grid
 nexttile
-plot(t3,Respuesta_A_3)
-xlabel('tiempo [s]')
+plot(t3,Respuesta_3)
+xlabel('Tiempo [s]')
 ylabel('Aceleración [g]')
-title('Respuesta amortiguamiento externo')
+title('Respuesta con amortiguamiento')
 grid
 nexttile
-plot(t4,Respuesta_A_4)
-xlabel('tiempo [s]')
+plot(t4,Respuesta_4)
+xlabel('Tiempo [s]')
 ylabel('Aceleración [g]')
-title('Respuesta resonancia')
+title('Respuesta en resonancia')
 grid
 
 %Crear vector con l y p
-l = [5.15 5.2 5.29 5.4 5.62 5.89 6.33]; %[cm]
-p = [0 20 50 100 200 300 500]; %[gf]
+l = [4.15 4.6 5.5 6.45 7.2 7.3 8.35]; %[cm]
+p = [0 50 150 250 350 370 500]; %[gf]
 coefficients = polyfit(l, p, 1); %Regresión lineal
 k = coefficients(1)/10; %[kgf/m]
 reg1 = coefficients(1).*p+l;
@@ -61,17 +67,17 @@ M = 0.635; %[kgF]
 w = sqrt(k/M);
 T = (2*pi)/(w);
 
-%Cortar el vector
-Resp1_rec = Respuesta_A_1(2001:2801); %Desplazamiento inicial
-Resp2_rec = Respuesta_A_2(5201:6001); %Velocidad inicial
-Resp3_rec = Respuesta_A_3(101:461); %Amortiguamiento inicial
-Resp4_rec = Respuesta_A_4(10001:10801); %Disipación forzante
-Resp5_rec = Respuesta_A_4(2001:2801); %Resonacia
+%Recortamos el vector de datos para calcular frecuencias naturales
+Resp1_rec = Respuesta_1(2001:6001); %Desplazamiento inicial conocido
+Resp2_rec = Respuesta_2(2001:6001); %Golpe
+Resp3_rec = Respuesta_3(2543:3239); %Amortiguamiento
+Resp4_rec = Respuesta_4(10001:20001); %Disipación forzante
+Resp5_rec = Respuesta_4(2001:8001); %Resonacia
 
 %Calculo de periodo
-
 Fs = 200;
 
+%Transformadas de fourier de las respuestas de la estructura
 TF_g11 = fft(Resp1_rec);
 L1 = length(Resp1_rec);
 P2_g11 = abs(TF_g11/L1);
@@ -83,8 +89,9 @@ plot(f_g11,P1_g11)
 grid
 grid minor
 xlabel('frecuencia [Hz]')
+xlim([0 10])
 ylabel('Amplitud [g]')
-title('Tranformada de Fourier Desplazamiento incial')
+title('Tranformada de respuesta a un desplazamiento incial conocido')
 Max_P1_g11 = max(P1_g11);
 indice_Max_P1_g11 = find(P1_g11 == Max_P1_g11);
 f1 = f_g11(indice_Max_P1_g11);
@@ -100,8 +107,9 @@ plot(f_g12,P1_g12)
 grid
 grid minor
 xlabel('frecuencia [Hz]')
+xlim([0 7])
 ylabel('Amplitud [g]')
-title('Tranformada de Fourier Impacto')
+title('Tranformada de respusta del golpe')
 Max_P1_g12 = max(P1_g12);
 indice_Max_P1_g12 = find(P1_g12 == Max_P1_g12);
 f2 = f_g12(indice_Max_P1_g12);
@@ -117,8 +125,9 @@ plot(f_g13,P1_g13)
 grid
 grid minor
 xlabel('frecuencia [Hz]')
+xlim([0 7])
 ylabel('Amplitud [g]')
-title('Tranformada de Fourier Amortiguamiento adicional')
+title('Tranformada con amortiguamiento adicional')
 Max_P1_g13 = max(P1_g13);
 indice_Max_P1_g13 = find(P1_g13 == Max_P1_g13);
 f3 = f_g13(indice_Max_P1_g13);
@@ -134,8 +143,9 @@ plot(f_g14,P1_g14)
 grid
 grid minor
 xlabel('frecuencia [Hz]')
+xlim([0 7])
 ylabel('Amplitud [g]')
-title('Tranformada de Disipación Forzante')
+title('Tranformada de disipación forzante')
 Max_P1_g14 = max(P1_g14);
 indice_Max_P1_g14 = find(P1_g14 == Max_P1_g14);
 f4 = f_g14(indice_Max_P1_g14);
@@ -151,8 +161,9 @@ plot(f_g15,P1_g15)
 grid
 grid minor
 xlabel('frecuencia [Hz]')
+xlim([0 7])
 ylabel('Amplitud [g]')
-title('Tranformada de Resonancia')
+title('Tranformada de respuesta en resonancia')
 Max_P1_g15 = max(P1_g15);
 indice_Max_P1_g15 = find(P1_g15 == Max_P1_g15);
 f5 = f_g15(indice_Max_P1_g15);
@@ -212,11 +223,11 @@ plot(num_maximos4,log(peaks_A4),'.')
 plot(num_maximos4,reg4,'-')
 
 %Aceleración forzante vs aceleración de la respuesta
-Resp_forz_rec = Respuesta_A_4(2001:2801);
+Resp_forz_rec = Respuesta_4(2001:6001);
 figure
 plot(Resp1_rec,Resp_forz_rec)
-xlabel('Aceleración de respuesta')
-ylabel('Aceleración del forzante')
+xlabel('Aceleración de respuesta [g]')
+ylabel('Aceleración del forzante [g]')
 grid
 
 vo = peaks_A2(1)/(mean([f1,f2,f3,f4])*2*pi); %Velocidad inicial
